@@ -1,13 +1,22 @@
-name: learn-github-actions
-run-name: ${{ github.actor }} is learning GitHub Actions
-on: [push]
+name: Mi primer workflow
+
+on:
+  push:
+  workflow_dispatch:
+
 jobs:
-  check-bats-version:
+  aprender:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-      - run: npm install -g bats
-      - run: bats -v
+      - name: Mostrar saludo
+        run: echo "Hola, estoy ejecutando mi primer GitHub Action"
+
+      - name: Mostrar sistema operativo
+        run: uname -a
+
+      - name: Mostrar directorio actual
+        run: pwd
+
+      - name: Mostrar usuario del runner
+        run: whoami
