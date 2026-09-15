@@ -20,3 +20,12 @@ jobs:
 
       - name: Mostrar usuario del runner
         run: whoami
+
+  mi_ip:
+    runs-on: ubuntu-latest
+    needs: aprender
+
+    steps:
+      - name: Esta es mi IP
+        run: ifcofig
+        
