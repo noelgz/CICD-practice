@@ -11,7 +11,7 @@ variable "project_name" {
 variable "environment" {
   description = "Ambiente de ejecución"
   type        = string
-  default     = "dev"
+  default="dev"
 }
 
 resource "terraform_data" "example" {
