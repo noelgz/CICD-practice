@@ -1,0 +1,44 @@
+name: Pipeline básico
+
+on:
+  workflow_dispatch:
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v6
+
+      - name: Validar archivos
+        run: |
+          echo "Iniciando validación..."
+          sleep 5
+          echo "Validación terminada correctamente"
+
+  probar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v6
+
+      - name: Ejecutar pruebas
+        run: |
+          echo "Ejecutando pruebas..."
+          sleep 3
+          echo "Pruebas terminadas correctamente"
+
+  desplegar:
+    runs-on: ubuntu-latest
+    needs:
+      - validar
+      - probar
+
+    steps:
+      - name: Simular despliegue
+        run: |
+          echo "Las validaciones y pruebas finalizaron correctamente"
+          echo "Iniciando despliegue..."
+          echo "Despliegue completado"
