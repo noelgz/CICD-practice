@@ -33,10 +33,13 @@ jobs:
         run: terraform version
 
       - name: Verificar formato
-        run: terraform fmt -check -recursive
+        run: terraform fmt -check -recursive -diff -no-color
 
       - name: Inicializar Terraform
         run: terraform init -backend=false -input=false
 
       - name: Validar Terraform
         run: terraform validate -no-color
+
+      - name: Generar Terraform Plan
+        run: terraform plan -no-color -input=false
