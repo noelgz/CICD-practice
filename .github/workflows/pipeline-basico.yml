@@ -13,9 +13,8 @@ jobs:
 
       - name: Validar archivos
         run: |
-          echo "Iniciando validación..."
-          sleep 5
-          echo "Validación terminada correctamente"
+          echo "Se encontró un error"
+          exit 1
 
   probar:
     runs-on: ubuntu-latest
