@@ -9,6 +9,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      - name: Descargar repositorio
+        uses: actions/checkout@v6
       - name: Mostrar saludo
         run: echo "Hola, estoy ejecutando mi primer GitHub Action"
 
