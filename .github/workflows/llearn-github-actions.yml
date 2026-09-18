@@ -12,6 +12,10 @@ jobs:
 
       - name: Descargar repositorio
         uses: actions/checkout@v6
+
+      - name: Leer archivo del repositorio
+        run: cat mensaje.txt
+      
       - name: Mostrar saludo
         run: echo "Hola, estoy ejecutando mi primer GitHub Action"
 
