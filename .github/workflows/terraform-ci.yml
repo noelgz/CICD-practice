@@ -1,4 +1,4 @@
-name: Terraform CI
+name: Terraform CI/CD
 
 on:
   push:
@@ -12,8 +12,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  terraform-validation:
-    name: Validar Terraform
+  plan:
+    name: Terraform Plan
     runs-on: ubuntu-latest
 
     defaults:
@@ -29,9 +29,6 @@ jobs:
         with:
           terraform_version: "~1.16.0"
 
-      - name: Mostrar versión
-        run: terraform version
-
       - name: Verificar formato
         run: terraform fmt -check -recursive -diff -no-color
 
@@ -41,5 +38,51 @@ jobs:
       - name: Validar Terraform
         run: terraform validate -no-color
 
-      - name: Generar Terraform Plan
-        run: terraform plan -no-color -input=false
+      - name: Generar plan
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Mostrar plan
+        run: terraform show -no-color tfplan
+
+      - name: Guardar plan como artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: terraform-plan
+          path: terraform/tfplan
+          if-no-files-found: error
+          retention-days: 1
+
+  apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: plan
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v6
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "~1.16.0"
+
+      - name: Inicializar Terraform
+        run: terraform init -backend=false -input=false
+
+      - name: Descargar plan
+        uses: actions/download-artifact@v8
+        with:
+          name: terraform-plan
+          path: terraform
+
+      - name: Aplicar plan
+        run: terraform apply -input=false -auto-approve tfplan
+
+      - name: Mostrar outputs
+        run: terraform output
