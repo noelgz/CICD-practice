@@ -1,0 +1,14 @@
+# Directorio local de Terraform
+**/.terraform/*
+
+# Estados de Terraform
+*.tfstate
+*.tfstate.*
+
+# Planes guardados
+*.tfplan
+tfplan
+
+# Logs de errores
+crash.log
+crash.*.log

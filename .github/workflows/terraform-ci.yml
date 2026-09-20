@@ -86,3 +86,34 @@ jobs:
 
       - name: Mostrar outputs
         run: terraform output
+
+      - name: Inspeccionar estado
+        run: |
+          echo "Archivo de estado:"
+          ls -lh terraform.tfstate
+
+          echo "Recursos administrados:"
+          terraform state list
+
+          echo "Outputs:"
+          terraform output
+
+      - name: Comprobar segundo plan
+        run: terraform plan -input=false -no-color
+
+      - name: Aplicar plan
+        run: terraform apply -input=false -auto-approve tfplan
+
+      - name: Inspeccionar estado
+        run: |
+          echo "Archivo de estado:"
+          ls -lh terraform.tfstate
+
+          echo "Recursos administrados:"
+          terraform state list
+
+          echo "Outputs:"
+          terraform output
+
+      - name: Comprobar segundo plan
+        run: terraform plan -input=false -no-color
