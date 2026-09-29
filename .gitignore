@@ -1,14 +1,37 @@
-# Directorio local de Terraform
 **/.terraform/*
 
-# Estados de Terraform
+# Terraform state files
 *.tfstate
 *.tfstate.*
+.terraform.tfstate.lock.info
 
-# Planes guardados
+# Terraform plan files
 *.tfplan
 tfplan
 
-# Logs de errores
+# Terraform crash logs
 crash.log
 crash.*.log
+
+# Terraform override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Variable files can contain sensitive values
+*.tfvars
+*.tfvars.json
+
+# Allow examples without real secrets
+!*.tfvars.example
+!*.tfvars.json.example
+
+.terraformrc
+terraform.rc
+
+**/.terragrunt-cache/*
+
+# Operating system files
+.DS_Store
+Thumbs.db

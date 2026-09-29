@@ -1,0 +1,129 @@
+name: Bootstrap Terraform Backend
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: terraform-backend-bootstrap-dev
+  cancel-in-progress: false
+
+env:
+  TF_VERSION: "1.15.6"
+  AWS_REGION: us-east-1
+
+  ORGANIZATION_CODE: ctl
+  PROJECT_CODE: platform
+  ENVIRONMENT: dev
+
+  TF_WORKING_DIR: terraform/bootstrap/backend
+  TF_STATE_KEY: bootstrap/terraform.tfstate
+
+jobs:
+  bootstrap:
+    name: Bootstrap backend - dev
+    runs-on: ubuntu-24.04
+    environment: bootstrap-dev
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: terraform/bootstrap/backend
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v6
+
+      - name: Autenticar en AWS mediante OIDC
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Calcular contexto AWS
+        id: context
+        run: |
+          account_id="$(aws sts get-caller-identity \
+            --query Account \
+            --output text)"
+
+          bucket_name="${ORGANIZATION_CODE}-${account_id}-${PROJECT_CODE}-s3-tfstate-${ENVIRONMENT}"
+
+          echo "AWS Account: ${account_id}"
+          echo "Backend bucket: ${bucket_name}"
+
+          echo "TF_STATE_BUCKET=${bucket_name}" >> "${GITHUB_ENV}"
+
+      - name: Comprobar formato
+        run: terraform fmt -check -recursive
+
+      - name: Crear bucket inicial si no existe
+        run: |
+          if aws s3api head-bucket \
+            --bucket "${TF_STATE_BUCKET}" 2>/dev/null; then
+            echo "El bucket ya existe."
+          else
+            echo "Creando bucket ${TF_STATE_BUCKET}..."
+
+            aws s3api create-bucket \
+              --bucket "${TF_STATE_BUCKET}" \
+              --region "${AWS_REGION}"
+          fi
+
+      - name: Inicializar backend remoto
+        run: |
+          terraform init \
+            -input=false \
+            -reconfigure \
+            -backend-config="bucket=${TF_STATE_BUCKET}" \
+            -backend-config="key=${TF_STATE_KEY}" \
+            -backend-config="region=${AWS_REGION}" \
+            -backend-config="encrypt=true" \
+            -backend-config="use_lockfile=true"
+
+      - name: Validar configuración
+        run: terraform validate
+
+      - name: Importar bucket si todavía no está en el state
+        run: |
+          if terraform state show \
+            aws_s3_bucket.terraform_state >/dev/null 2>&1; then
+            echo "El bucket ya está administrado por Terraform."
+          else
+            echo "Importando bucket a Terraform..."
+
+            terraform import \
+              -input=false \
+              -var="aws_region=${AWS_REGION}" \
+              -var="organization_code=${ORGANIZATION_CODE}" \
+              -var="project_code=${PROJECT_CODE}" \
+              -var="environment=${ENVIRONMENT}" \
+              aws_s3_bucket.terraform_state \
+              "${TF_STATE_BUCKET}"
+          fi
+
+      - name: Crear plan
+        run: |
+          terraform plan \
+            -input=false \
+            -out=tfplan \
+            -var="aws_region=${AWS_REGION}" \
+            -var="organization_code=${ORGANIZATION_CODE}" \
+            -var="project_code=${PROJECT_CODE}" \
+            -var="environment=${ENVIRONMENT}"
+
+      - name: Aplicar plan
+        run: terraform apply -input=false tfplan
+
+      - name: Verificar estado remoto
+        run: |
+          echo "Recursos administrados:"
+          terraform state list
