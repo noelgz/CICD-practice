@@ -1,0 +1,46 @@
+name: Terraform CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  TF_VERSION: "1.15.6"
+  TF_IN_AUTOMATION: "true"
+  TF_WORKING_DIR: terraform/environments/dev
+
+jobs:
+  validate:
+    name: Validate Terraform
+    runs-on: ubuntu-24.04
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: terraform/environments/dev
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v6
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Comprobar formato
+        run: terraform fmt -check -recursive
+
+      - name: Inicializar sin backend
+        run: terraform init -backend=false -input=false
+
+      - name: Validar configuración
+        run: terraform validate
