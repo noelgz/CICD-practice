@@ -1,0 +1,77 @@
+name: Terraform Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "terraform/environments/dev/**"
+      - ".github/workflows/terraform-deploy.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: terraform-platform-dev
+  cancel-in-progress: false
+
+env:
+  TF_VERSION: "1.15.6"
+  TF_IN_AUTOMATION: "true"
+  AWS_REGION: us-east-1
+  TF_WORKING_DIR: terraform/environments/dev
+
+jobs:
+  deploy-dev:
+    name: Deploy Terraform - dev
+    runs-on: ubuntu-24.04
+    environment: dev
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: terraform/environments/dev
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v6
+
+      - name: Autenticar en AWS mediante OIDC
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Comprobar formato
+        run: terraform fmt -check -recursive
+
+      - name: Inicializar Terraform
+        run: |
+          terraform init \
+            -input=false \
+            -reconfigure \
+            -backend-config=backend.hcl
+
+      - name: Validar configuración
+        run: terraform validate
+
+      - name: Crear plan
+        run: |
+          terraform plan \
+            -input=false \
+            -var-file=dev.tfvars \
+            -out=tfplan
+
+      - name: Aplicar plan
+        run: terraform apply -input=false tfplan
+
+      - name: Mostrar outputs
+        run: terraform output
