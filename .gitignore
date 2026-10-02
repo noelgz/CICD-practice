@@ -19,13 +19,18 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 
-# Variable files can contain sensitive values
+# Variable files may contain sensitive values
 *.tfvars
 *.tfvars.json
 
 # Allow examples without real secrets
 !*.tfvars.example
 !*.tfvars.json.example
+
+# Version-controlled environment configuration
+# These files must never contain secrets
+!terraform/environments/**/*.tfvars
+!terraform/environments/**/*.tfvars.json
 
 .terraformrc
 terraform.rc
