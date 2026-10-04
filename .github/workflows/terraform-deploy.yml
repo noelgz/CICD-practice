@@ -63,9 +63,6 @@ jobs:
       - name: Validar configuración
         run: terraform validate
 
-      - name: Recuperar bucket creado parcialmente
-        run: terraform untaint aws_s3_bucket.artifacts
-
       - name: Crear plan
         run: |
           terraform plan \
