@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "terraform/environments/dev/**"
+      - "terraform/modules/**"
       - ".github/workflows/terraform-deploy.yml"
 
   workflow_dispatch:
@@ -51,6 +52,7 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Comprobar formato
+        working-directory: ${{ github.workspace }}
         run: terraform fmt -check -recursive
 
       - name: Inicializar Terraform
