@@ -20,4 +20,20 @@ locals {
     Owner              = "platform-engineering"
     DataClassification = "internal"
   }
+
+  events_queue_name = join("-", [
+    local.name_prefix,
+    "sqs",
+    "events",
+    var.environment
+  ])
+
+  events_dead_letter_queue_name = join("-", [
+    local.name_prefix,
+    "sqs",
+    "events",
+    "dlq",
+    var.environment
+  ])
+
 }
