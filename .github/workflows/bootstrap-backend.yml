@@ -2,13 +2,23 @@ name: Bootstrap Terraform Backend
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: Ambiente del backend
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - stage
+          - prod
 
 permissions:
   contents: read
   id-token: write
 
 concurrency:
-  group: terraform-backend-bootstrap-dev
+  group: terraform-backend-bootstrap-${{ inputs.environment }}
   cancel-in-progress: false
 
 env:
@@ -17,16 +27,16 @@ env:
 
   ORGANIZATION_CODE: ctl
   PROJECT_CODE: platform
-  ENVIRONMENT: dev
+  ENVIRONMENT: ${{ inputs.environment }}
 
   TF_WORKING_DIR: terraform/bootstrap/backend
   TF_STATE_KEY: bootstrap/terraform.tfstate
 
 jobs:
   bootstrap:
-    name: Bootstrap backend - dev
+    name: Bootstrap backend - ${{ inputs.environment }}
     runs-on: ubuntu-24.04
-    environment: bootstrap-dev
+    environment: bootstrap-${{ inputs.environment }}
 
     defaults:
       run:

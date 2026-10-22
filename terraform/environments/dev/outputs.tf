@@ -22,3 +22,29 @@ output "artifacts_bucket_arn" {
   description = "ARN del bucket de artifacts"
   value       = module.artifacts_bucket.bucket_arn
 }
+
+# SQS QUEUE
+output "events_queue_name" {
+  description = "Nombre de la cola de eventos."
+  value       = module.events_queue.queue_name
+}
+
+output "events_queue_arn" {
+  description = "ARN de la cola de eventos."
+  value       = module.events_queue.queue_arn
+}
+
+output "events_queue_url" {
+  description = "URL de la cola de eventos."
+  value       = module.events_queue.queue_url
+}
+
+output "events_dead_letter_queue_name" {
+  description = "Nombre de la Dead Letter Queue."
+  value       = module.events_queue.dead_letter_queue_name
+}
+
+output "events_dead_letter_queue_arn" {
+  description = "ARN de la Dead Letter Queue."
+  value       = module.events_queue.dead_letter_queue_arn
+}
